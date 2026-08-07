@@ -73,19 +73,22 @@ export default function WeekGrid({
 
   return (
     <div className="calendar">
-      <div className="calendar-days">
-        <span className="calendar-gutter-head" />
-        {days.map((day) => (
-          <div
-            key={day}
-            className={`calendar-day-head ${isToday(day) ? "today" : ""}`}>
-            <span className="day-num">{dayNumber(day)}</span>
-            <span className="day-name">{weekdayLabel(day).toUpperCase()}</span>
-          </div>
-        ))}
-      </div>
-
       <div className="calendar-scroll" ref={scrollRef}>
+        {/* The day headings live inside the scroller and stick to its top.
+            Kept outside it they would drift out of line with the columns as
+            soon as a scrollbar took width off the grid. */}
+        <div className="calendar-days">
+          <span className="calendar-gutter-head" />
+          {days.map((day) => (
+            <div
+              key={day}
+              className={`calendar-day-head ${isToday(day) ? "today" : ""}`}>
+              <span className="day-num">{dayNumber(day)}</span>
+              <span className="day-name">{weekdayLabel(day).toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+
         <div className="calendar-body" style={{ height: GRID_HEIGHT }}>
           <div className="calendar-gutter">
             {HOURS.map((hour) => (

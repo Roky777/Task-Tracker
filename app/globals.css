@@ -258,6 +258,9 @@ a {
   padding: 20px 18px;
   background-color: var(--panel);
   color: var(--panel-fg);
+  /* Same reason as .canvas — without this the sidebar grows past the shell
+     rather than scrolling its own overflow. */
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -509,6 +512,10 @@ a {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* Grid items default to min-height:auto, which would let the 24-hour grid
+     push this taller than the shell instead of letting the calendar scroll
+     inside it. Both min-* zeroes are load-bearing. */
+  min-height: 0;
   background-color: var(--canvas);
 }
 
@@ -683,11 +690,18 @@ a {
   min-height: 0;
 }
 
+/* Sticks to the top of the scroller, so the days stay visible while the hours
+   move under them. Needs an opaque background and a z-index above the event
+   blocks, or they would show through as they scroll past. */
 .calendar-days {
+  position: sticky;
+  top: 0;
+  z-index: 6;
   display: grid;
   grid-template-columns: 64px repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid var(--line);
   padding-bottom: 12px;
+  background-color: var(--canvas);
 }
 
 .calendar-day-head {
@@ -722,6 +736,8 @@ a {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Room to scroll the last hours clear of the floating "up next" bar. */
+  padding-bottom: 88px;
 }
 
 .calendar-body {
