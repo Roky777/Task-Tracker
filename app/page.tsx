@@ -9,6 +9,7 @@ import FilterPanel from "./components/FilterPanel";
 import IconRail from "./components/IconRail";
 import NowBar from "./components/NowBar";
 import Sidebar from "./components/Sidebar";
+import TaskDetail from "./components/TaskDetail";
 import TaskDialog from "./components/TaskDialog";
 import Toasts, { type Toast } from "./components/Toasts";
 import WeekGrid from "./components/WeekGrid";
@@ -157,6 +158,12 @@ export default function Home() {
     pushToast("Task deleted.", "danger");
   }
 
+  // Clicking the task that is already open closes the panel, so the calendar
+  // and the sidebar both double as a way out of it.
+  function handleSelect(id: string) {
+    setSelectedId((current) => (current === id ? null : id));
+  }
+
   function openAddDialog() {
     setEditingTask(null);
     setDialogOpen(true);
@@ -244,11 +251,16 @@ export default function Home() {
   const overallStats = getStats(tasks);
   const overdueCount = overdueTasks(tasks).length;
   const upNext = nextUpNow(tasks);
+  // Looked up in the visible list rather than in `tasks`, so the panel can only
+  // ever describe a task that is actually on screen: filter one out and its
+  // details close with it instead of lingering over a calendar that lost it.
+  const selectedTask =
+    visibleTasks.find((task) => task.id === selectedId) ?? null;
   const taskPendingDeletion =
     tasks.find((task) => task.id === pendingDeleteId) ?? null;
 
   return (
-    <div className="shell">
+    <div className={`shell ${selectedTask !== null ? "has-detail" : ""}`}>
       <IconRail
         today={dayNumber(todayKey())}
         onAddTask={openAddDialog}
@@ -264,7 +276,7 @@ export default function Home() {
         onSearchChange={setSearch}
         onAddTask={openAddDialog}
         onToggleComplete={handleToggleComplete}
-        onSelect={setSelectedId}
+        onSelect={handleSelect}
         onDelete={setPendingDeleteId}
       />
 
@@ -290,7 +302,7 @@ export default function Home() {
           tasks={visibleTasks}
           selectedId={selectedId}
           currentMinutes={currentMinutes}
-          onSelect={setSelectedId}
+          onSelect={handleSelect}
           onToggleComplete={handleToggleComplete}
         />
 
@@ -300,6 +312,16 @@ export default function Home() {
           onEdit={openEditDialog}
         />
       </main>
+
+      {selectedTask !== null ? (
+        <TaskDetail
+          task={selectedTask}
+          onEdit={openEditDialog}
+          onToggleComplete={handleToggleComplete}
+          onDelete={setPendingDeleteId}
+          onClose={() => setSelectedId(null)}
+        />
+      ) : null}
 
       {/* Conditional rendering: dialogs only exist in the tree while open, so
           each one mounts with fresh state every time. */}

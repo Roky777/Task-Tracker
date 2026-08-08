@@ -20,6 +20,9 @@ Tasks are saved to the browser's `localStorage`, so they survive a refresh.
 
 - **Add tasks** with a title, description, priority, category, date and time
 - **Week calendar** placing each task at its due time, with a live "now" line
+- **Detail panel** opening beside the calendar with the selected task's full
+  description, date, priority and category, and buttons to edit, complete or
+  delete it
 - **Mark complete / pending** from the calendar, the sidebar, or the bottom bar
 - **Edit and delete**, with a confirmation step before anything is removed
 - **Filters** by status, priority and category, plus text search and sorting
@@ -71,6 +74,7 @@ app/
 │   ├── SidebarTaskList.tsx
 │   ├── CalendarHeader.tsx     # week nav, status select, account menu
 │   ├── WeekGrid.tsx           # the calendar and its task blocks
+│   ├── TaskDetail.tsx         # selected task: description + actions
 │   ├── NowBar.tsx             # floating "up next" bar
 │   ├── TaskDialog.tsx         # add + edit form
 │   ├── FilterPanel.tsx        # filter / sort drawer
@@ -117,6 +121,12 @@ yet" guard it overwrites saved tasks with the empty starting array.
 midnight, which is the day before for anyone west of Greenwich. Storing a local
 `"YYYY-MM-DD"` string and building it from the local getters avoids the whole
 problem.
+
+**`overflow: hidden` changes what a flex item can do.** The sidebar cards would
+not let the sidebar scroll: `overflow: hidden` drops a flex item's automatic
+minimum size from its content height to zero, so the cards quietly shrank to fit
+and clipped their own task lists instead of overflowing the panel. `flex-shrink:
+0` on the card is the fix.
 
 **Conditional rendering.** Completed tasks get a line through them, a different
 button and a faded block; dialogs are removed from the tree entirely when

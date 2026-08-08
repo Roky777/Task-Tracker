@@ -153,6 +153,12 @@ a {
   overflow: hidden;
 }
 
+/* Selecting a task opens a fourth column for its details. The calendar keeps
+   the `minmax(0, 1fr)` and simply gives up the width. */
+.shell.has-detail {
+  grid-template-columns: 86px 380px minmax(0, 1fr) 330px;
+}
+
 .loading {
   display: flex;
   flex-direction: column;
@@ -334,6 +340,10 @@ a {
   border-radius: var(--radius-lg);
   background-color: var(--panel-card);
   overflow: hidden;
+  /* Load-bearing. `overflow: hidden` drops a flex item's automatic minimum size
+     to zero, so without this the cards shrink to fit the panel and clip their
+     own task lists — the panel never overflows, and so never scrolls. */
+  flex-shrink: 0;
 }
 
 .panel-card-head {
@@ -464,7 +474,10 @@ a {
 }
 
 .panel-promo {
+  /* Sits at the bottom when the sections are short, and is pushed below them
+     into the scroll when they are not. */
   margin-top: auto;
+  flex-shrink: 0;
   padding: 18px;
   border-radius: var(--radius-lg);
   background: linear-gradient(140deg, var(--panel-card), rgb(169 224 101 / 22%));
@@ -905,6 +918,161 @@ a {
 
 .event.done .event-check::after {
   content: "";
+}
+
+/* --- Task detail panel --------------------------------------------------- */
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  /* The panel is a grid column of the shell, so it has to be allowed to shrink
+     before its own body can scroll. */
+  min-height: 0;
+  border-left: 1px solid var(--line);
+  background-color: var(--canvas-2);
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-head h2 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.detail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.detail-tag {
+  padding: 3px 10px;
+  border: 1px solid var(--low-br);
+  border-radius: 999px;
+  background-color: var(--low-bg);
+  color: var(--low-fg);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.detail-tag.tone-high {
+  border-color: var(--high-br);
+  background-color: var(--high-bg);
+  color: var(--high-fg);
+}
+
+.detail-tag.tone-medium {
+  border-color: var(--med-br);
+  background-color: var(--med-bg);
+  color: var(--med-fg);
+}
+
+.detail-tag.done {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.detail-tag.overdue {
+  border-color: var(--danger);
+  background-color: transparent;
+  color: var(--danger);
+}
+
+.detail-title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+  /* Long single-word titles would otherwise widen the whole grid column. */
+  overflow-wrap: anywhere;
+}
+
+.detail-when {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.detail-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.detail-section h4 {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.detail-description {
+  font-size: 14px;
+  line-height: 1.65;
+  /* Keeps any line breaks the user typed into the textarea. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.detail-empty {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+
+.detail-actions .solid-button,
+.detail-actions .outline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.detail-delete {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.detail-delete:hover {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 /* --- Now bar ------------------------------------------------------------- */
@@ -1897,9 +2065,22 @@ a {
 
 /* --- Responsive ---------------------------------------------------------- */
 
+/* Four columns run out of room before three do, so the task panel gives up its
+   width first. Ordered widest-first: these rules all have the same specificity,
+   so a narrower breakpoint only wins by coming later. */
+@media (max-width: 1400px) {
+  .shell.has-detail {
+    grid-template-columns: 86px 300px minmax(0, 1fr) 300px;
+  }
+}
+
 @media (max-width: 1180px) {
   .shell {
     grid-template-columns: 76px 320px minmax(0, 1fr);
+  }
+
+  .shell.has-detail {
+    grid-template-columns: 76px 280px minmax(0, 1fr) 290px;
   }
 
   .cal-title {
@@ -1910,11 +2091,24 @@ a {
 /* Below this the three columns cannot coexist, so the whole thing becomes a
    single scrolling page: rail across the top, panel, then the calendar. */
 @media (max-width: 900px) {
-  .shell {
+  .shell,
+  /* `.shell.has-detail` outranks `.shell` on specificity, so it has to be reset
+     here by name — coming later in the file is not enough. */
+  .shell.has-detail {
     grid-template-columns: minmax(0, 1fr);
     height: auto;
     min-height: 100dvh;
     overflow: visible;
+  }
+
+  /* Stacked under the calendar rather than beside it. */
+  .detail {
+    border-left: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .detail-body {
+    overflow-y: visible;
   }
 
   .rail {
